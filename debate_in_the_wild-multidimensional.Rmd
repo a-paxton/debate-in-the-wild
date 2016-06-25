@@ -478,12 +478,12 @@ Taken together, Component 6 appears to capture discussions about **relations**, 
 # what are the highest 5 factors in component 6?
 c6.high.factors = component.factors(reduced.data, res.ent,
                                     liwc.prop.ent, 6, "top")
-pander(c6.high.factors)
+pander(c6.high.factors, style = "rmarkdown")
 
 # what are the lowest 5 factors in component 6?
 c6.low.factors = component.factors(reduced.data, res.ent,
                                    liwc.prop.ent, 6, "bottom")
-pander(c6.low.factors)
+pander(c6.low.factors, style = "rmarkdown")
 
 ```
 
@@ -534,12 +534,12 @@ Component 8 might be labeled as **health**.
 # what are the highest 5 factors in component 8?
 c8.high.factors = component.factors(reduced.data, res.ent,
                                     liwc.prop.ent, 8, "top")
-pander(c8.high.factors)
+pander(c8.high.factors, style = "rmarkdown")
 
 # what are the lowest 5 factors in component 8?
 c8.low.factors = component.factors(reduced.data, res.ent,
                                    liwc.prop.ent, 8, "bottom")
-pander(c8.low.factors)
+pander(c8.low.factors, style = "rmarkdown")
 
 ```
 
@@ -592,12 +592,12 @@ Finally, component 13 could be described as the **social** category.
 # what are the highest 5 factors in component 13?
 c13.high.factors = component.factors(reduced.data, res.ent, 
                                      liwc.prop.ent, 13, "top")
-pander(c13.high.factors)
+pander(c13.high.factors, style = "rmarkdown")
 
 # what are the lowest 5 factors in component 13?
 c13.low.factors = component.factors(reduced.data, res.ent,
                                     liwc.prop.ent, 13, "bottom")
-pander(c13.low.factors)
+pander(c13.low.factors, style = "rmarkdown")
 
 ```
 
@@ -664,12 +664,12 @@ Component 3 could be described as an **assent** category. The top components are
 # what are the highest 5 factors in component 3?
 c3.high.factors = component.factors(reduced.data,res.ent,
                                     liwc.prop.ent, 3, "top")
-pander(c3.high.factors)
+pander(c3.high.factors, style = "rmarkdown")
 
 # what are the lowest 5 factors in component 3?
 c3.low.factors = component.factors(reduced.data, res.ent,
                                    liwc.prop.ent, 3, "bottom")
-pander(c3.low.factors)
+pander(c3.low.factors, style = "rmarkdown")
 
 ```
 
@@ -723,12 +723,12 @@ Component 5 could be described as the **emotion** category.
 # what are the highest 5 factors in component 5?
 c5.high.factors = component.factors(reduced.data,res.ent,
                                     liwc.prop.ent, 5, "top")
-pander(c5.high.factors)
+pander(c5.high.factors, style = "rmarkdown")
 
 # what are the lowest 5 factors in component 5?
 c5.low.factors = component.factors(reduced.data, res.ent,
                                    liwc.prop.ent, 5, "bottom")
-pander(c5.low.factors)
+pander(c5.low.factors, style = "rmarkdown")
 
 ```
 
