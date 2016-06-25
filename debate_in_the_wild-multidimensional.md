@@ -1,13 +1,4 @@
----
-title: "Debate in the Wild: Multidimensional and Machine Learning Models"
-output: html_document
-  # html_document: 
-  #   fig_caption: yes 
-  #   number_sections: yes 
-  #   toc: yes 
-  #   css: custom.css 
-  #   theme: journal
----
+# Debate in the Wild: Multidimensional and Machine Learning Models
 
 This R markdown provides the basis for our manuscript exploring the effects of linguistic behaviors on persuasiveness using <a href = "http://www.iq2us.org" target="_blank">the Intelligence Squared U.S.</a> corpus, first introduced by Paxton and Dale (2014, *Proceedings of the Cognitive Science Society*). This is the second of two R markdowns that accompanies this manuscript.
 
