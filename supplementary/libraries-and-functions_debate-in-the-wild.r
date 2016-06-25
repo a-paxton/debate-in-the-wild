@@ -8,7 +8,7 @@
 #####################################################################################
 
 #### Set working directory ####
-setwd('~/Dropbox/paxton/pubs/inprep-intellisquare/github-files')
+setwd('/debate-in-the-wild/')
 
 #####################################################################################
 
@@ -69,9 +69,9 @@ pander_lme = function(lme_model_name, stats.caption){
                          round(model_conditional_r_squared,2), ".**",sep="")
     
     # return the table
-    return(pander(neat_output, split.table = Inf, caption = neat_caption, format = 'markdown_github'))
+    return(pander(neat_output, split.table = Inf, caption = neat_caption, format = 'rmarkdown'))
   } else { # or return a table without it
-    return(pander(neat_output, style="rmarkdown",split.table = Inf, format = 'markdown_github'))
+    return(pander(neat_output, style="rmarkdown",split.table = Inf, format = 'rmarkdown'))
   }
 }
 
@@ -104,9 +104,9 @@ pander_lm = function(lm_model_name, stats.caption){
                          ") = ",round(model_fstatistics[1],2),"**",sep="")
     
     # return the table
-    return(pander(neat_output, split.table = Inf, caption = neat_caption, format = 'markdown_github'))
+    return(pander(neat_output, split.table = Inf, caption = neat_caption, format = 'rmarkdown'))
   }else{# or return a table without it
-    return(pander(neat_output, style="rmarkdown",split.table = Inf, format = 'markdown_github'))
+    return(pander(neat_output, style="rmarkdown",split.table = Inf, format = 'rmarkdown'))
   }
 }
 
@@ -129,7 +129,7 @@ significant.effects = function(lm_model_name){
   rownames(significant.effects) = seq(length=nrow(significant.effects))
   
   # return the names of the significant effects
-  return(pander(significant.effects, format = 'markdown_github'))
+  return(pander(significant.effects, format = 'rmarkdown'))
 }
 
 # "trending.effects": identify trends in a model (.05 < p <= .10)
@@ -152,7 +152,7 @@ trending.effects = function(lm_model_name){
   rownames(trending.effects) = seq(length=nrow(trending.effects))
   
   # return the names of the significant effects
-  return(pander(trending.effects, format = 'markdown_github'))
+  return(pander(trending.effects, format = 'rmarkdown'))
 }
 
 
