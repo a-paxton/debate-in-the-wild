@@ -1,12 +1,10 @@
 ---
 title: "Debate in the Wild: Data Preparation, Data Summaries, and Targeted Model"
-output:
-  html_document:
-    fig_caption: yes
-    number_sections: yes
-    toc: yes
-    css: custom.css
-    theme: journal
+output: html_document
+  # html_document:
+  #   fig_caption: yes
+  #   number_sections: yes
+  #   toc: yes
 ---
 
 This R markdown provides the basis for our manuscript exploring the effects of linguistic behaviors and personal traits on persuasiveness using <a href = "http://www.iq2us.org" target="_blank">the Intelligence Squared U.S.</a> corpus, first introduced by Paxton and Dale (2014, *Proceedings of the Cognitive Science Society*). This is the first of two R markdowns that accompanies this manuscript.
@@ -401,6 +399,7 @@ range.deltaV
 ```
 ## Saving 4 x 3 in image
 ```
+**Figure**: Debate outcomes (∆V) as a histogram and density function. Raw counts of each bin are represented as a gradient color scale from light blue (more occurrences) to dark blue (fewer occurrences).
 
 ***
 
@@ -491,6 +490,8 @@ Table: **Marginal *R*-squared: 0.07; Conditional *R*-squared: 0.35.**
 
 
 <img src="figure/plot-all-interactions-1.png" title="Interactions for the effects of each of the four targeted effects (attractiveness, hedging, negativity, and first-person plural pronouns) and group membership (green = 'for', red = 'against') on outcome (∆V). For hedging, negativity, and first-person plural pronouns, these values are calculated as the proportion of all utterances made up by each category. Again, ∆V is calculated as the pre- to post-debate gains in votes made by the 'for' group relative to the 'against' group. A positive ∆V means that the 'for' group gained more votes than the 'against' group, while a negative ∆V indicates that the 'against' group won more votes relative to the 'against' group." alt="Interactions for the effects of each of the four targeted effects (attractiveness, hedging, negativity, and first-person plural pronouns) and group membership (green = 'for', red = 'against') on outcome (∆V). For hedging, negativity, and first-person plural pronouns, these values are calculated as the proportion of all utterances made up by each category. Again, ∆V is calculated as the pre- to post-debate gains in votes made by the 'for' group relative to the 'against' group. A positive ∆V means that the 'for' group gained more votes than the 'against' group, while a negative ∆V indicates that the 'against' group won more votes relative to the 'against' group." style="display: block; margin: auto;" />
+
+**Figure**: Interactions for the effects of each of the four targeted effects (attractiveness, hedging, negativity, and first-person plural pronouns) and group membership (green = 'for', red = 'against') on outcome (∆V). For hedging, negativity, and first-person plural pronouns, these values are calculated as the proportion of all utterances made up by each category. Again, ∆V is calculated as the pre- to post-debate gains in votes made by the 'for' group relative to the 'against' group. A positive ∆V means that the 'for' group gained more votes than the 'against' group, while a negative ∆V indicates that the 'against' group won more votes relative to the 'against' group.
 
 ***
 
