@@ -1,12 +1,12 @@
 ---
 title: "Debate in the Wild: Multidimensional and Machine Learning Models"
-output: 
-  html_document: 
-    fig_caption: yes 
-    number_sections: yes 
-    toc: yes 
-    css: custom.css 
-    theme: journal
+output: html_document
+  # html_document: 
+  #   fig_caption: yes 
+  #   number_sections: yes 
+  #   toc: yes 
+  #   css: custom.css 
+  #   theme: journal
 ---
 
 This R markdown provides the basis for our manuscript exploring the effects of linguistic behaviors on persuasiveness using <a href = "http://www.iq2us.org" target="_blank">the Intelligence Squared U.S.</a> corpus, first introduced by Paxton and Dale (2014, *Proceedings of the Cognitive Science Society*). This is the second of two R markdowns that accompanies this manuscript.
@@ -92,6 +92,8 @@ dim(classifier.data) # (columns = features, rows = speakers)
 Let's look at the distribution of all LIWC features in the first debate, broken down by category. The plot below shows the usage of the 3 debaters from each side ("for" = green, "against" = red). The plot tracks which categories are used (by each debater) more than the mean proportion for that LIWC category across the entire dataset.
 
 <img src="figure/plot-liwc-features-1.png" title="Speakers' use of words from all LIWC features across 'for'-group (green) and 'against'-group (red) debaters during the first debate. Each dot indicates that a given speaker's (x-axis) proportional use of the corresponding LIWC category (y-axis) -- across all of that speaker's turns -- exceeded mean (across the entire dataset) for that LIWC category." alt="Speakers' use of words from all LIWC features across 'for'-group (green) and 'against'-group (red) debaters during the first debate. Each dot indicates that a given speaker's (x-axis) proportional use of the corresponding LIWC category (y-axis) -- across all of that speaker's turns -- exceeded mean (across the entire dataset) for that LIWC category." style="display: block; margin: auto;" />
+
+**Figure**: Speakers' use of words from all LIWC features across 'for'-group (green) and 'against'-group (red) debaters during the first debate. Each dot indicates that a given speaker's (x-axis) proportional use of the corresponding LIWC category (y-axis) -- across all of that speaker's turns -- exceeded mean (across the entire dataset) for that LIWC category.
 
 ***
 
@@ -254,6 +256,7 @@ pander_lm(contin.model.fit,stats.caption = TRUE)
 Table: **Adjusted *R*-squared: 0.02; *F*(1,108) = 3.63**
 
 <img src="figure/plot-contin-svm-results-1.png" title="The relation between the SVM's predicted debate outcomes and the actual debate outcomes." alt="The relation between the SVM's predicted debate outcomes and the actual debate outcomes." style="display: block; margin: auto;" />
+**Figure**: The relation between the SVM's predicted debate outcomes and the actual debate outcomes.
 
 ***
 
@@ -333,6 +336,8 @@ print(chosen.cutoff)
 
 
 <img src="figure/plot-all-dim-info-1.png" title="Gain in adjusted R-squared for each added component (top) and actual adjusted R-squared for each model (bottom). These were created by progressively calculating the adjusted R-squared for linear models predicting outcome (`deltaV`) with increasing numbers of components (i.e., `deltaV ~ c1`, `deltaV ~ c1 + c2`, ... `deltaV ~ c1 + c2 + ... + c50`)." alt="Gain in adjusted R-squared for each added component (top) and actual adjusted R-squared for each model (bottom). These were created by progressively calculating the adjusted R-squared for linear models predicting outcome (`deltaV`) with increasing numbers of components (i.e., `deltaV ~ c1`, `deltaV ~ c1 + c2`, ... `deltaV ~ c1 + c2 + ... + c50`)." style="display: block; margin: auto;" />
+
+**Figure**: Gain in adjusted R-squared for each added component (top) and actual adjusted R-squared for each model (bottom). These were created by progressively calculating the adjusted R-squared for linear models predicting outcome (`deltaV`) with increasing numbers of components (i.e., `deltaV ~ c1`, `deltaV ~ c1 + c2`, ... `deltaV ~ c1 + c2 + ... + c50`).
 
 ***
 
@@ -450,7 +455,7 @@ pander(c6.low.factors, style = "rmarkdown")
 
 #### Component 8
 
-Component 8 might be labeled as **health**.
+Component 8 can be labeled as **health**.
 
 
 ```r
@@ -493,7 +498,7 @@ pander(c8.low.factors, style = "rmarkdown")
 
 #### Component 13
 
-Finally, component 13 could be described as the **social** category.
+Finally, component 13 focuses on **social** dimensions.
 
 
 ```r
@@ -556,7 +561,7 @@ trending.effects(deltaV.ent.lm.contin)
 
 #### Component 3
 
-Component 3 could be described as an **assent** category. The top components are main and interaction terms for the *assent* LIWC category (e.g., "yes") and the *Dic* LIWC category (i.e., whether the words in the turn are included in any of LIWC's categories).
+Component 3 is an **assent** category. The top components are main and interaction terms for the *assent* LIWC category (e.g., "yes") and the *Dic* LIWC category (i.e., whether the words in the turn are included in any of LIWC's categories).
 
 
 ```r
@@ -599,7 +604,7 @@ pander(c3.low.factors, style = "rmarkdown")
 
 #### Component 5
 
-Component 5 could be described as the **emotion** category.
+Component 5 revolves around **emotion** content.
 
 
 ```r
@@ -660,7 +665,8 @@ For each of these components, we see a relatively uniform effect on outcome (`de
 
 It is important here to again note that these results are derived from nearly 70 debates with a range of topics. The centrality of these components to daily life -- relations, health, and social -- likely make them applicable to a range of arguments on both sides of any given debate.
 
-<img src="figure/plot-all-significant-1.png" title="Interactions for all significant components by group membership (green = 'for', red = 'against'). For ease of plotting, the scores for each component are split along the mean. " alt="Interactions for all significant components by group membership (green = 'for', red = 'against'). For ease of plotting, the scores for each component are split along the mean. " style="display: block; margin: auto;" />
+<img src="figure/plot-all-significant-1.png" title="Interactions for all significant components by group membership (green = 'for', red = 'against'). For ease of plotting, the scores for each component are split along the mean." alt="Interactions for all significant components by group membership (green = 'for', red = 'against'). For ease of plotting, the scores for each component are split along the mean." style="display: block; margin: auto;" />
+**Figure**: Interactions for all significant components by group membership (green = 'for', red = 'against'). For ease of plotting, the scores for each component are split along the mean.
 
 ***
 
@@ -668,5 +674,6 @@ It is important here to again note that these results are derived from nearly 70
 
 Increased use of the **emotion** component tends to be associated with a decrease in pre- to post-debate votes for the"for" group relative to the "against" group, with no differences by group membership. The **assent** component, by contrast, shows a trend toward the opposite.
 
-<img src="figure/plot-all-trending-1.png" title="Interactions for all trending components by group membership (green = 'for', red = 'against'). For ease of plotting, the scores for each component are split along the mean. " alt="Interactions for all trending components by group membership (green = 'for', red = 'against'). For ease of plotting, the scores for each component are split along the mean. " style="display: block; margin: auto;" />
+<img src="figure/plot-all-trending-1.png" title="Interactions for all trending components by group membership (green = 'for', red = 'against'). For ease of plotting, the scores for each component are split along the mean." alt="Interactions for all trending components by group membership (green = 'for', red = 'against'). For ease of plotting, the scores for each component are split along the mean." style="display: block; margin: auto;" />
 
+**Figure**: Interactions for all trending components by group membership (green = 'for', red = 'against'). For ease of plotting, the scores for each component are split along the mean.
