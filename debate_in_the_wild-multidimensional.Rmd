@@ -1,14 +1,12 @@
 ---
 title: "Debate in the Wild: Multidimensional and Machine Learning Models"
-output:
-  html_document:
-    fig_caption: yes
-    number_sections: yes
-    toc: yes
-    css: custom.css
+output: 
+  html_document: 
+    fig_caption: yes 
+    number_sections: yes 
+    toc: yes 
+    css: custom.css 
     theme: journal
-
-# themes: cosmo or journal
 ---
 
 This R markdown provides the basis for our manuscript exploring the effects of linguistic behaviors on persuasiveness using <a href = "http://www.iq2us.org" target="_blank">the Intelligence Squared U.S.</a> corpus, first introduced by Paxton and Dale (2014, *Proceedings of the Cognitive Science Society*). This is the second of two R markdowns that accompanies this manuscript.
@@ -34,7 +32,7 @@ Let's prepare for our analyses.
 rm(list=ls())
 
 # set working directory and read in supplementary source file
-setwd('~/Dropbox/paxton/pubs/inprep-intellisquare')
+setwd('/debate-in-the-wild/')
 source('./supplementary/libraries-and-functions_debate-in-the-wild.r')
 
 # load data and drop non-standard LIWC categories
@@ -131,7 +129,7 @@ qplot(raster[,1],raster[,2], color = rgbs[(tmp[raster[,1],]$group==2)+1]) +
                      labels=c("Against","For"))
 
 # save plot to file
-ggsave('plot-sample-liwc-distribution.png',
+ggsave('./figures/plot-sample-liwc-distribution.png',
        units = "in", width = 3, height = 7)
 
 ```
@@ -299,7 +297,7 @@ ggplot(contin.results, aes(x = pred.value,
   ggtitle("Comparing Actual Outcome\n to Predicted Outcome")
 
 # save plot to file
-ggsave('svm-comparing-actual-and-predicted.png',
+ggsave('./figures/svm-comparing-actual-and-predicted.png',
        units = "in", width = 3, height = 3)
 
 ```
@@ -415,7 +413,7 @@ grid.arrange(
 )
 
 # save plot to file
-ggsave('comparing-model-performance.png',
+ggsave('./figures/comparing-model-performance.png',
        units = "in", width = 4, height = 5,
        grid.arrange(
          top=textGrob("Model Performance with Added Components",
@@ -815,7 +813,7 @@ grid.arrange(
 )
 
 # save to file
-ggsave('significant-factors-interactions.png',
+ggsave('./figures/significant-factors-interactions.png',
        units = "in", width = 6, height = 3,
        grid.arrange(top=textGrob("Success by group membership\nand use of significant components",
                                  gp=gpar(fontsize=14)),
@@ -854,7 +852,7 @@ grid.arrange(
 )
 
 # save to file
-ggsave('trending-components-interactions.png',
+ggsave('./figures/trending-components-interactions.png',
        units = "in", width = 4, height = 3,
        grid.arrange(
          top=textGrob("Success by group membership\nand use of trending components",
