@@ -1,18 +1,12 @@
 ---
 title: "Debate in the Wild: Data Preparation, Data Summaries, and Targeted Model"
 output:
-  # pdf_document:
-    # fig_caption: yes
-    # number_sections: yes
-    # toc: yes
   html_document:
     fig_caption: yes
     number_sections: yes
     toc: yes
     css: custom.css
     theme: journal
-
-# themes: cosmo or journal
 ---
 
 This R markdown provides the basis for our manuscript exploring the effects of linguistic behaviors and personal traits on persuasiveness using <a href = "http://www.iq2us.org" target="_blank">the Intelligence Squared U.S.</a> corpus, first introduced by Paxton and Dale (2014, *Proceedings of the Cognitive Science Society*). This is the first of two R markdowns that accompanies this manuscript.
@@ -48,7 +42,7 @@ This section sets the working directory, loads in the requisite libraries, and c
 rm(list=ls())
 
 # set working directory for the first time
-setwd('~/Dropbox/paxton/pubs/inprep-intellisquare')
+setwd('/debate-in-the-wild/')
 
 # load in functions and libraries
 source('./supplementary/libraries-and-functions_debate-in-the-wild.R')
@@ -76,7 +70,7 @@ After having cleaned up the entire debate dataset, we here prepare the subset of
 rm(list = ls())
 
 # read in our source files
-setwd('~/Dropbox/paxton/pubs/inprep-intellisquare')
+setwd('/debate-in-the-wild/')
 source('./supplementary/libraries-and-functions_debate-in-the-wild.R')
 
 # read in the concatenated dataset
@@ -197,7 +191,7 @@ Let's clean up the workspace, read in the source file, and import the data.
 rm(list = ls())
 
 # read in our source files
-setwd('~/Dropbox/paxton/pubs/inprep-intellisquare')
+setwd('/debate-in-the-wild/')
 source('./supplementary/libraries-and-functions_debate-in-the-wild.R')
 
 # read in the concatenated dataset
@@ -305,7 +299,7 @@ Let's clean everything up again and get ready for data analysis
 rm(list = ls())
 
 # read in our source files
-setwd('~/Dropbox/paxton/pubs/inprep-intellisquare')
+setwd('/debate-in-the-wild/')
 source('./supplementary/libraries-and-functions_debate-in-the-wild.R')
 
 # read in the plotting and standardized datasets
@@ -403,6 +397,10 @@ range.deltaV
 ```
 
 <img src="figure/plot-hist-deltaV-1.png" title="Debate outcomes (∆V) as a histogram and density function. Raw counts of each bin are represented as a gradient color scale from light blue (more occurrences) to dark blue (fewer occurrences)." alt="Debate outcomes (∆V) as a histogram and density function. Raw counts of each bin are represented as a gradient color scale from light blue (more occurrences) to dark blue (fewer occurrences)." style="display: block; margin: auto;" />
+
+```
+## Saving 4 x 3 in image
+```
 
 ***
 
