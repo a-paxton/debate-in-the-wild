@@ -1,0 +1,566 @@
+---
+title: "Debate in the Wild: Data Preparation, Data Summaries, and Targeted Model"
+output:
+  # pdf_document:
+    # fig_caption: yes
+    # number_sections: yes
+    # toc: yes
+  html_document:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+    css: custom.css
+    theme: journal
+
+# themes: cosmo or journal
+---
+
+This R markdown provides the basis for our manuscript exploring the effects of linguistic behaviors and personal traits on persuasiveness using <a href = "http://www.iq2us.org" target="_blank">the Intelligence Squared U.S.</a> corpus, first introduced by Paxton and Dale (2014, *Proceedings of the Cognitive Science Society*). This is the first of two R markdowns that accompanies this manuscript.
+
+To run completely from scratch, you will need the following files:
+
+* `./data/all-debate-data.csv`
+* `./supplementary/libraries-and-functions_debate-in-the-wild.R`
+* `./supplementary/missing-data_debate-in-the-wild.R`
+
+Additional files required for the data analysis will be generated at various steps throughout the code.
+
+**NOTE**: The chunks of code in many sections need only be run once, since the manipulated data will be saved to new files. As a result, these chunks are currently set to `eval = FALSE`. Bear this in mind if these data need to be re-calculated.
+
+**Code written by**: A. Paxton (University of California, Berkeley)
+<br>**Date last modified**: 23 June 2016
+
+*** 
+
+# Global preliminaries
+
+This section takes care of data import and preparation. As a new analysis of the IQ2 corpus (Paxton & Dale, 2014, *Proceedings of the Cognitive Science Society*), the original data file includes coded variables from prior work.
+
+***
+
+## Load libraries and functions
+
+This section sets the working directory, loads in the requisite libraries, and creates new functions for the analyses.
+
+```{r global-prelims, warning = FALSE, error = FALSE, message = FALSE}
+
+# clear up our workspace
+rm(list=ls())
+
+# set working directory for the first time
+setwd('~/Dropbox/paxton/pubs/inprep-intellisquare')
+
+# load in functions and libraries
+source('./supplementary/libraries-and-functions_debate-in-the-wild.R')
+
+```
+
+***
+
+# Data preparation
+
+While we have the complete dataset including all debates, we still need to prepare the data a bit before we can analyze everything. This section takes the master dataframe and gets it ready for data analysis.
+
+***
+
+## Preparing debater-only subset
+
+After having cleaned up the entire debate dataset, we here prepare the subset of data in which we're interested: turns at which only the debaters are speaking.
+
+***
+
+### Preliminaries
+
+```{r prep-debater-prelims, eval = FALSE, warning = FALSE, error = FALSE, message = FALSE}
+
+# clean everything up
+rm(list = ls())
+
+# read in our source files
+setwd('~/Dropbox/paxton/pubs/inprep-intellisquare')
+source('./supplementary/libraries-and-functions_debate-in-the-wild.R')
+
+# read in the concatenated dataset
+debateList = read.csv('./data/all-debate-data.csv', header = TRUE, sep = ",", 
+                      row.names = NULL, fill = FALSE)
+
+```
+
+***
+
+### Winnow data and update NAs
+
+This section removes turns by the moderator (`group` = `M`) and other speakers (`group` = `O`), then transforms missing data to `NA`.
+
+```{r winnow-and-NAs, eval = FALSE}
+
+# keep only data where debaters are talking
+debaters = debateList[debateList$group!='O',]
+debaters = debaters[debaters$group!='M',]
+
+# convert 909 (for photo ratings) and 999 (for in-depth voting details) to NA
+debaters[debater.ratings][debaters[debater.ratings]==909] <- NA
+debaters[detailed.variables][debaters[detailed.variables]==999] <- NA
+
+```
+
+***
+
+### Recode groups and clean up
+
+Let's create numeric codes for our debater groups ("against" = `1`, "for" = `2`), remove variables that were unavailable for all debates, and drop lines with missing data.
+
+```{r recode-debater-groups, eval = FALSE}
+
+# recode debater groups
+debaters$group = as.numeric(debaters$group)
+
+# remove the in-depth debate metrics
+debaters = debaters[names(debaters) %notin% detailed.variables]
+
+# drop any lines that have missing data
+debaters = debaters[complete.cases(debaters),]
+
+```
+
+***
+
+### Aggregate data at speaker level
+
+Since the data were created in the B(eo)W(u)LF format (*by-word long-form*; Paxton & Dale, 2013, *arXiv*), the data are separated at the word level. We here aggregate data at the speaker level and export the data.
+
+```{r aggregate-data, eval = FALSE}
+
+# identify the LIWC variables
+all.vars = names(debaters)
+liwc.variables = all.vars[all.vars %notin% c(debater.ratings,
+                                             desc.variables,
+                                             text.variables,
+                                             outcome.variables,
+                                             summedLIWC.variables)]
+
+# grab the outcome variables and debater ratings
+outcome.data = debaters %>% 
+  select(one_of(c(desc.variables,outcome.variables, debater.ratings))) %>%
+  group_by(debate, group, speaker) %>%
+  summarise_each( funs( mean ))
+
+# create turn-level transcript
+reconstituted.transcript = debaters %>% 
+  group_by(debate, group, speaker) %>% 
+  summarise(transcript = toString(word, sep=" ")) 
+
+# aggregate base-100 LIWC variables
+aggregated.liwc = debaters %>% 
+  select(one_of(c(liwc.variables,desc.variables))) %>%
+  group_by(debate, group, speaker) %>% 
+  summarise_each( funs( sum(as.numeric(.))/100 ))
+
+# sum the single-count variables
+summed.liwc = debaters %>% 
+  select(one_of(c(summedLIWC.variables,desc.variables))) %>%
+  group_by(debate, group, speaker) %>% 
+  summarise_each( funs( sum( as.numeric(.) )))
+
+# bring together the individual dataframes
+debaters = join(outcome.data, reconstituted.transcript,
+                by = c('debate','group','speaker'))
+debaters = join(debaters, summed.liwc, 
+                by = c('debate','group','speaker'))
+debaters = join(debaters, aggregated.liwc,
+                by = c('debate','group','speaker'))
+
+```
+
+***
+
+### Export aggregated speaker-level dataset
+
+Let's save the speaker-level data to a CSV.
+
+```{r export-turn-level-data, eval = FALSE}
+
+# export the speaker-level data
+write.csv(debaters, './data/speaker_level-debate-data.csv', row.names=FALSE)
+
+```
+
+***
+
+## Standardize variables
+
+In order to interpret the estimates of our forthcoming mixed-effects models as effect sizes (cf. Keith, 2008), we need to center and scale them before entering them into our model.
+
+***
+
+### Preliminaries
+
+Let's clean up the workspace, read in the source file, and import the data.
+
+```{r standardize-prelim, eval = FALSE, warning = FALSE, error = FALSE, message = FALSE}
+
+# clean everything up
+rm(list = ls())
+
+# read in our source files
+setwd('~/Dropbox/paxton/pubs/inprep-intellisquare')
+source('./supplementary/libraries-and-functions_debate-in-the-wild.R')
+
+# read in the concatenated dataset
+debaters = read.csv('./data/speaker_level-debate-data.csv', header = TRUE, sep = ",", 
+                    row.names = NULL, fill = FALSE)
+
+```
+
+***
+
+### Create proportion terms
+
+Let's create new variables that treat our predictors as proportions of total words spoken by the speaker (`WC`). We also include the plural first-person pronoun category (`we`).
+
+```{r create-proportion-terms, eval = FALSE}
+
+# identify the LIWC variables
+liwc.variables = names(debaters)[names(debaters) %notin% c(debater.ratings,
+                                             desc.variables,
+                                             text.variables,
+                                             summedLIWC.variables,
+                                             outcome.variables)]
+
+# calculate variables as proportion of total words spoken by the speaker
+proportion.vars = debaters %>%
+  ungroup() %>%
+  select(one_of(desc.variables,liwc.variables), WC) %>%
+  mutate_each(funs( as.numeric(. / WC) ), -one_of(desc.variables, WC)) %>%
+  select(-WC) %>%
+  setNames(paste0('prop.', names(.)))
+proportion.vars = plyr::rename(proportion.vars, 
+                               c("prop.debate" = "debate",
+                                 "prop.group" = "group",
+                                 "prop.speaker" = "speaker"))
+
+# merge with original dataset
+debaters = join(debaters,proportion.vars,by=c(desc.variables))
+
+```
+
+***
+
+### Create interaction terms
+
+We here create standardized interaction terms that we can use for during the analysis stage in order to properly create models for both standardized and unstandardized models.
+
+```{r create-group-interaction-terms, eval = FALSE}
+
+# create interactions with group membership
+group.interaction.vars = debaters %>%
+  ungroup() %>%
+  select(one_of(desc.variables,
+                names(proportion.vars),
+                liwc.variables,
+                debater.ratings)) %>%
+  mutate_each(funs( as.numeric(. * group) ), -one_of(desc.variables)) %>%
+  setNames(paste0('group.', names(.)))
+group.interaction.vars = plyr::rename(group.interaction.vars, 
+                                      c("group.debate" = "debate",
+                                        "group.group" = "group", 
+                                        "group.speaker" = "speaker"))
+
+# merge with existing dataset
+debaters = join(debaters,group.interaction.vars,by=c(desc.variables))
+
+```
+
+***
+
+### Standardize dataset
+
+This step will create a centered and standardized dataset for our standardized models.
+
+```{r standardize-main-effects, eval = FALSE}
+
+# scale variables
+debaters.st = debaters %>% ungroup() %>%
+  mutate(speaker = as.integer(speaker)) %>%
+  purrr::keep(is.numeric) %>%
+  mutate_each( funs( as.numeric( scale(.) )))
+
+```
+
+***
+
+### Save plotting and standardized datasets
+
+We save separate versions of the new dataset, unstandardized (`./data/plotting-debate-data.csv`) and standardized (`./data/standardized-debate-data.csv`).
+
+```{r save-plot-and-st-data, eval = FALSE}
+
+write.csv(debaters, './data/plotting-debate-data.csv', row.names=FALSE)
+write.csv(debaters.st, './data/standardized-debate-data.csv', row.names=FALSE)
+
+```
+
+***
+
+# Data analysis
+
+***
+
+## Preliminaries
+
+Let's clean everything up again and get ready for data analysis
+
+```{r analysis-prelim, warning = FALSE, error = FALSE, message = FALSE}
+
+# clean everything up
+rm(list = ls())
+
+# read in our source files
+setwd('~/Dropbox/paxton/pubs/inprep-intellisquare')
+source('./supplementary/libraries-and-functions_debate-in-the-wild.R')
+
+# read in the plotting and standardized datasets
+debaters.plotting = read.csv('./data/plotting-debate-data.csv', header = TRUE, sep = ",", 
+                             row.names = NULL, fill = FALSE)
+debaters.st = read.csv('./data/standardized-debate-data.csv', header = TRUE, sep = ",", 
+                       row.names = NULL, fill = FALSE)
+
+```
+
+***
+
+## Some summary statistics
+
+Let's take a peek at some of the attributes of the corpus before jumping in.
+
+***
+
+### How many debates do we have?
+
+```{r num-debates}
+# how many debates do we have?
+total.debates = length(unique(debaters.plotting$debate))
+total.debates
+```
+
+***
+
+### How many speakers are included?
+
+```{r num-speakers}
+# how many unique speakers do we have?
+total.speakers = length(unique(debaters.plotting$speaker))
+total.speakers
+```
+
+***
+
+### How many words are included?
+
+```{r num-words}
+# how many words do we have?
+total.words = sum(debaters.plotting$WC)
+print(total.words)
+```
+
+***
+
+### How often does each team win?
+
+```{r proportion-of-wins}
+
+# get one line per debate
+agg.data = debaters.plotting %>%
+  select(debate,winner,deltaV) %>%
+  group_by(debate,winner,deltaV) %>%
+  summarise_each(funs(mean))
+
+# what proportion of times does the "for" group win?
+for.wins = sum(agg.data$winner)/length(agg.data$winner)
+for.wins
+```
+
+***
+
+### What's the range of net gains for the "for" group relative to the "against" group?
+
+```{r range-deltaV}
+
+# what's the range of deltaV?
+range.deltaV = range(agg.data$deltaV)
+range.deltaV
+
+```
+
+```{r plot-hist-deltaV, eval=TRUE, echo=FALSE, fig.cap="Debate outcomes (∆V) as a histogram and density function. Raw counts of each bin are represented as a gradient color scale from light blue (more occurrences) to dark blue (fewer occurrences).",fig.width=4, fig.height=3, fig.align='center'}
+
+ggplot(agg.data,aes(x = deltaV)) +
+  geom_histogram(aes(y = ..density..,
+                     fill = ..count..),
+                 binwidth = 5) + 
+  geom_density() +
+  labs(title = "Debate Outcomes",
+       y = "Density",
+       x = "∆V") +
+  scale_fill_gradient("Count") +
+  theme(legend.position = "bottom")
+
+```
+
+***
+
+### What's the mean net gain for the "for" group relative to the "against" group?
+
+```{r mean-deltaV}
+
+# what's the mean net gain for the "for" group (deltaV)?
+mean.deltaV = mean(agg.data$deltaV)
+mean.deltaV
+
+```
+
+***
+
+## Differentiating between winning strategies
+
+```{r winning-strategies-lmer-model}
+
+# raw (unstandardized) model
+deltaV.raw.lm = lmer(deltaV ~ group + prop.tentat + prop.we +
+                           attractive + prop.negemo + 
+                           group.prop.tentat + group.prop.we +
+                           group.attractive + group.prop.negemo +
+                           (1 + group + prop.tentat + attractive | winner),
+                          data = debaters.plotting, REML = FALSE)
+
+# standardized model
+deltaV.st.lm = lmer(deltaV ~ group + prop.tentat + prop.we +
+                           attractive + prop.negemo + 
+                           group.prop.tentat + group.prop.we +
+                           group.attractive + group.prop.negemo +
+                           (1 + group + prop.tentat + attractive | winner),
+                         data = debaters.st, REML = FALSE)
+
+# raw (unstandardized) model results
+pander_lme(deltaV.raw.lm, stats.caption = TRUE)
+
+# standardized model results
+pander_lme(deltaV.st.lm, stats.caption = TRUE)
+
+```
+
+```{r plot-group-X-attractive-interaction, eval=TRUE, echo=FALSE, fig.cap="Group membership, attractiveness, and winning side.",fig.width=4, fig.height=3, fig.align='center'}
+
+# plot the attractiveness interaction
+plot.attr.int = ggplot(data=debaters.plotting, 
+                       aes(y = deltaV, 
+                           x = attractive, 
+                           color = as.factor(group))) +
+  geom_smooth() +
+  theme(legend.position = "none") +
+  scale_color_manual(name="Debater Group",
+                     breaks=c("1","2"),
+                     values = c('red3','green4'),
+                     labels=c("Against", "For")) +
+  ylim(c(-80,80)) +
+  ylab("∆V") + xlab("Attractiveness")
+
+```
+ 
+```{r plot-group-X-negemo-interaction, eval=TRUE, echo=FALSE, fig.cap="Group membership, negativity, and net change in votes.",fig.width=4, fig.height=3, fig.align='center'}
+
+# plot the negativity interaction
+plot.neg.int = ggplot(data=debaters.plotting, 
+                      aes(y = deltaV, 
+                          x = prop.negemo, 
+                          color = as.factor(group))) +
+  geom_smooth() +
+  #labs(title="Negativity") +
+  theme(legend.position = "none") +
+  scale_color_manual(name="Debater Group",
+                       breaks=c("1","2"),
+                       values = c('red3','green4'),
+                       labels=c("Against", "For")) +
+  ylim(c(-80,80)) +
+  ylab(" ") + xlab("Negativity")
+
+```
+
+```{r plot-group-X-hedge-interaction, eval=TRUE, echo=FALSE, fig.cap="Group membership, hedging, and net change in votes.",fig.width=4, fig.height=3, fig.align='center'}
+
+# plot the hedging interaction
+plot.hedge.int = ggplot(data=debaters.plotting, 
+                        aes(y = deltaV, 
+                            x = prop.tentat, 
+                            color = as.factor(group))) +
+  geom_smooth() +
+  #labs(title="Hedging") +
+  theme(legend.position = "none") +
+  scale_color_manual(name="Debater Group",
+                     breaks=c("1","2"),
+                     values = c('red3','green4'),
+                     labels=c("Against", "For")) +
+  ylim(c(-80,80)) +
+  ylab("∆V") + xlab("Hedging")
+
+```
+
+```{r plot-group-X-we-interaction, eval=TRUE, echo=FALSE, fig.cap="Group membership, first-person plural pronouns, and net change in votes.",fig.width=4, fig.height=3, fig.align='center'}
+
+# plot the "we" interaction
+plot.we.int = ggplot(data=debaters.plotting, 
+                     aes(y = deltaV, 
+                         x = prop.we, 
+                         color = as.factor(group))) +
+  geom_smooth() +
+  #labs(title="First-Person Plural Pronouns") +
+  theme(legend.position = "none") +
+  scale_color_manual(name="Debater Group",
+                     breaks=c("1","2"),
+                     values = c('red3','green4'),
+                     labels=c("Against", "For")) +
+  ylim(c(-80,80)) +
+  ylab(" ") + xlab("First-Person Plural Pronouns")
+
+```
+
+```{r plot-all-interactions, fig.cap="Interactions for the effects of each of the four targeted effects (attractiveness, hedging, negativity, and first-person plural pronouns) and group membership (green = 'for', red = 'against') on outcome (∆V). For hedging, negativity, and first-person plural pronouns, these values are calculated as the proportion of all utterances made up by each category. Again, ∆V is calculated as the pre- to post-debate gains in votes made by the 'for' group relative to the 'against' group. A positive ∆V means that the 'for' group gained more votes than the 'against' group, while a negative ∆V indicates that the 'against' group won more votes relative to the 'against' group.",fig.width=6, fig.height=6, fig.align='center', eval = TRUE, echo = FALSE}
+
+# create a master legend
+master.legend = gtable_filter(ggplot_gtable(
+  ggplot_build(plot.we.int + theme(legend.position="bottom"))), 
+  "guide-box")
+
+# arrange the plots
+grid.arrange(
+  top=textGrob("Outcomes by Targeted Effects\nand Group Membership",
+               gp=gpar(fontsize=14)),
+  plot.attr.int,
+  plot.neg.int,
+  plot.hedge.int,
+  plot.we.int,
+  ncol = 2
+)
+
+# save to file
+ggsave('interactions-for-targeted-effects-on-deltaV.png',
+       units = "in", width = 6, height = 6,
+       grid.arrange(
+         top=textGrob("Outcomes by Targeted Effects\nand Group Membership",
+                      gp=gpar(fontsize=14)),
+         plot.attr.int,
+         plot.neg.int,
+         plot.hedge.int,
+         plot.we.int,
+         ncol = 2
+       ))
+
+```
+
+***
+
+# Discussion
+
+In addition to basic data preparation, this markdown explored how a series of targeted variables (drawn from work in linguistics, psychology, and political science) influence persuasion. We selected four linguistic behaviors and personal traits for each debater -- attractiveness, hedging, negativity, and pronouns -- and explored how these factors might influence persuasiveness during a live debate. Contrary to our expectations, we found only an effect of attractiveness on persuasion, in which greater attractiveness ratings were associated with higher "for"-group persuasiveness, *even if* the attractive debater were a member of the "against" group.
+
+After investigating these targeted effects, our next R markdown leverages much broader linguistic measures in a series of exploratory models to better understand persuasiveness.

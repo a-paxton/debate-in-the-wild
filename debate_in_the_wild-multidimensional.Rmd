@@ -1,0 +1,870 @@
+---
+title: "Debate in the Wild: Multidimensional and Machine Learning Models"
+output:
+  html_document:
+    fig_caption: yes
+    number_sections: yes
+    toc: yes
+    css: custom.css
+    theme: journal
+
+# themes: cosmo or journal
+---
+
+This R markdown provides the basis for our manuscript exploring the effects of linguistic behaviors on persuasiveness using <a href = "http://www.iq2us.org" target="_blank">the Intelligence Squared U.S.</a> corpus, first introduced by Paxton and Dale (2014, *Proceedings of the Cognitive Science Society*). This is the second of two R markdowns that accompanies this manuscript.
+
+To run completely from scratch, you will need the following files:
+
+* `./data/plotting-debate-data.csv`: The unstandardized dataset created in the `debate_in_the_wild-prep_summary_targeted.Rmd` file.
+* `./supplementary/libraries_and_functions`: A source file that includes all necessary libraries and specifies new functions for the script.
+* `./supplementary/dimensionality_cutoff-debate_in_the_wild.R`: A source file responsible for assisting in model selection.
+
+**Code written by**: A. Paxton (University of California, Berkeley) and R. Dale (University of California, Merced)
+<br>**Date last modified**: 23 June 2016
+
+***
+
+# Preliminaries
+
+Let's prepare for our analyses.
+
+```{r setup, warning = FALSE, error = FALSE, message = FALSE, include=TRUE, eval=TRUE}
+
+# clear workspace
+rm(list=ls())
+
+# set working directory and read in supplementary source file
+setwd('~/Dropbox/paxton/pubs/inprep-intellisquare')
+source('./supplementary/libraries-and-functions_debate-in-the-wild.r')
+
+# load data and drop non-standard LIWC categories
+classifier.data = read.csv('./data/plotting-debate-data.csv',
+                           header = TRUE, sep = ",", row.names = NULL, fill = FALSE)
+classifier.data = select(classifier.data,-one_of(unused.variables))
+
+```
+
+***
+
+# Data preparation
+
+***
+
+## Isolate LIWC variables
+
+``` {r isolate-liwc-categories}
+
+# list proportional LIWC main terms
+liwc.main.prop = classifier.data %>%
+  select(starts_with('prop')) %>%
+  names(.)
+
+# list proportional LIWC-by-group interaction terms
+liwc.int.prop = classifier.data %>%
+  select(starts_with('group')) %>%
+  select(contains('prop')) %>%
+  select(-one_of(debater.vars)) %>%
+  names(.)
+
+# list main and interaction proportional terms
+liwc.both.prop = c(liwc.main.prop, 
+                   liwc.int.prop, 
+                   'group')
+
+```
+
+***
+
+## Check debate data
+
+Let's check that our data look like we expect them to.
+
+```{r check-data}
+
+# check to make sure we have the correct data structure
+dim(classifier.data) # (columns = features, rows = speakers)
+
+```
+
+***
+
+## Plot sample LIWC distribution
+
+Let's look at the distribution of all LIWC features in the first debate, broken down by category. The plot below shows the usage of the 3 debaters from each side ("for" = green, "against" = red). The plot tracks which categories are used (by each debater) more than the mean proportion for that LIWC category across the entire dataset.
+
+```{r plot-liwc-features, fig.cap="Speakers' use of words from all LIWC features across 'for'-group (green) and 'against'-group (red) debaters during the first debate. Each dot indicates that a given speaker's (x-axis) proportional use of the corresponding LIWC category (y-axis) -- across all of that speaker's turns -- exceeded mean (across the entire dataset) for that LIWC category.",fig.width=3, fig.height=7, fig.align='center', eval = TRUE, echo = FALSE}
+
+# find summed LIWC main terms for y-axis labels
+liwc.main.summed = classifier.data %>%
+  select(-one_of(debater.vars,desc.variables,text.variables,
+                 outcome.variables,summedLIWC.variables,
+                 outcome.variables)) %>%
+  select(-starts_with('group'), -starts_with('prop')) %>%
+  names(.)
+
+# grab only the first debate and only the debaters
+tmp = classifier.data[classifier.data$debate == min(classifier.data$debate),]
+tmp$group[tmp$group == max(tmp$group)] = 2
+tmp$group[tmp$group == min(tmp$group)] = 1
+
+# create a matrix just of these variables
+raster = tmp[names(tmp) %in% liwc.main.prop] %>%
+  mutate_each(funs(. > quantile(.)[3]))
+raster = which(as.matrix(raster),arr.ind=T)
+
+# ensure that "for" shows up as blue and that "against" shows up as red
+cols = matrix(tmp$group,
+              nrow=length(tmp$group),
+              ncol=length(liwc.main.prop))
+rgbs = c(rgb(0,0,1),rgb(1,0,0))
+cols = rgbs[1*(cols==2)+1]
+
+# visualize the feature distribution
+qplot(raster[,1],raster[,2], color = rgbs[(tmp[raster[,1],]$group==2)+1]) +
+  xlab('Speaker') + ylab('LIWC feature') +
+  theme(legend.position="none") +
+  scale_y_continuous(breaks = 1:length(liwc.main.prop),
+                     labels = liwc.main.summed) +
+  scale_color_manual(name=" ",
+                     values = c('red3','green4'),
+                     breaks=c(1,2),
+                     labels=c("Against","For"))
+
+# save plot to file
+ggsave('plot-sample-liwc-distribution.png',
+       units = "in", width = 3, height = 7)
+
+```
+
+***
+
+# Data analysis: Classifiers with proportional LIWC data
+
+***
+
+## Subset data
+
+Create the test and training subsets that we'll need. For replication, we rely on the test and training sets created in our initial analysis. 
+
+The first snippet (which creates and saves the training and test sets) is by default set to `eval = FALSE`, but it can be changed if needed. The second snippet is set by default to run each time, reading in the CSVs for each dataset.
+
+``` {r grab-training-and-test-sets, eval = FALSE} 
+
+# grab rows that will become part of the training and test sets
+trainDebates = sample(1:dim(classifier.data)[1],
+                      dim(classifier.data)[1]/1.5)
+testDebates = setdiff(1:dim(classifier.data)[1],
+                      trainDebates)
+
+# create two separate subsets using those rows
+trainSet = classifier.data[trainDebates,]
+testSet = classifier.data[testDebates,]
+
+# write them to CSV for replication
+write.csv(trainSet,'./data/svm-training-set.csv', row.names = FALSE)
+write.csv(testSet,'./data/svm-test-set.csv', row.names = FALSE)
+
+```
+
+``` {r load-training-and-test-sets} 
+
+# read in training and test test from CSV
+trainSet = read.csv('./data/svm-training-set.csv')
+testSet = read.csv('./data/svm-test-set.csv')
+
+```
+
+***
+
+## Run binary classifier for group identity
+
+First, a classifier predicting group identity with only LIWC terms (i.e., proportional main terms only) is unable to reliably predict group membership.
+
+``` {r svm-group} 
+
+# can we use SVM to predict outcomes by the LIWC profile alone?
+group.svm = svm(
+  y = as.factor(trainSet$group),
+  x = trainSet[names(trainSet) %in% liwc.main.prop],
+  type = 'C-classification',
+  kernel = "polynomial",
+  cross = 10
+)
+
+# let's check out our results
+group.svm.results = data.frame(table(
+  predict(group.svm,
+          testSet[names(trainSet) %in% liwc.main.prop]),
+  testSet$group
+))
+names(group.svm.results) = c('pred','actual','freq')
+group.svm.results
+
+# let's find our true/false for/against
+true.against = group.svm.results[group.svm.results$pred == 1 &
+                                   group.svm.results$actual == 1,]$freq
+true.for = group.svm.results[group.svm.results$pred == 2 &
+                                   group.svm.results$actual == 2,]$freq
+false.against = group.svm.results[group.svm.results$pred == 1 &
+                                   group.svm.results$actual == 2,]$freq
+false.for = group.svm.results[group.svm.results$pred == 2 &
+                                   group.svm.results$actual == 1,]$freq
+
+# accuracy
+accuracy = (true.against + true.for) / sum(group.svm.results$freq)
+accuracy
+
+# sensitivity
+sensitivity = true.against / (true.against + false.for)
+sensitivity
+
+# specificity
+specificity = true.for / (true.for + false.against)
+specificity
+
+```
+
+***
+
+## Run SVM for continuous outcome
+
+Next, an outcome-based classifier that takes into account the proportional main LIWC terms, the group main term, and all LIWC-by-group interaction terms.
+
+``` {r svm-continuous-outcome} 
+
+# can we use SVM to predict continuous outcomes by the LIWC profile?
+deltaV.both.svm.contin = svm(
+  y = trainSet$deltaV,
+  x = trainSet[names(trainSet) %in% liwc.both.prop], 
+  type = 'eps-regression',
+  kernel = "polynomial",
+  cross = 10
+  )
+
+# create a data frame for the model results
+contin.results = data.frame(table(
+  predict((deltaV.both.svm.contin),
+          testSet[names(trainSet) %in% liwc.both.prop]),
+  testSet$deltaV))
+names(contin.results) = c('pred.value', 'actual.value', 'freq')
+
+# only grab the predicted values for each
+contin.results = contin.results[contin.results$freq == 1,]
+contin.results = select(contin.results,-freq)
+rownames(contin.results) = seq(length=nrow(contin.results))
+
+# convert factors to numbers
+contin.results$pred.value = type.convert(as.character(contin.results$pred.value),
+                                         dec = '.')
+contin.results$actual.value = strtoi(contin.results$actual.value)
+
+# let's see the results
+contin.model.fit = lm(pred.value ~ actual.value, 
+                      data = contin.results)
+pander_lm(contin.model.fit,stats.caption = TRUE)
+
+```
+
+```{r plot-contin-svm-results, fig.cap="The relation between the SVM's predicted debate outcomes and the actual debate outcomes.",fig.width=4, fig.height=4, fig.align='center', eval = TRUE, echo = FALSE}
+
+# isolate slope and intercept from the model
+contin.intercept = coef(contin.model.fit)[1]
+contin.slope = coef(contin.model.fit)[2]
+
+# find difference between actual and predicted
+contin.results$Discrepancy = abs(contin.results$actual.value - contin.results$pred.value)
+
+# identify range for x- and y-axes
+results.range = range(c(contin.results$actual.value,
+        contin.results$pred.value))
+results.range = c(round(results.range[1] - 5, -1),
+                     round(results.range[2] + 5, -1))
+
+# plot the relations
+ggplot(contin.results, aes(x = pred.value,
+                           y = actual.value,
+                           color = Discrepancy)) +
+  geom_point() +
+  scale_x_continuous(limits = results.range,
+                     breaks = seq(results.range[1],
+                                  results.range[2], 15),
+                     name = 'Predicted Value') +
+  scale_y_continuous(limits = results.range,
+                     breaks = seq(results.range[1],
+                                  results.range[2], 15),
+                     name = 'Actual Value') +
+  theme(legend.position = 'bottom') +
+  geom_abline(intercept = contin.intercept, 
+             slope = contin.slope) +
+  ggtitle("Comparing Actual Outcome\n to Predicted Outcome")
+
+# save plot to file
+ggsave('svm-comparing-actual-and-predicted.png',
+       units = "in", width = 3, height = 3)
+
+```
+
+***
+
+# Data analysis: Classifiers with reduced-dimensionality data
+
+Our previous analysis suggests that linguistic effects may be related to the debate outcomes. This section explores those effects by reducing the dimensionality of the data, allowing us to identify the linguistic threads that contribute to changes in debate outcome. Because many of the features are relatively sparse, we handle the data sparsity issue using SVD (singular value decomposition).
+
+***
+
+## Entropy transformation
+
+First, let's do entropy transformation (see Landauer & Dumais; cf. *tf-idf*) of the main and interaction terms.
+
+``` {r entropy-transformation} 
+
+# perform entropy transformation on our data
+reduced.data = classifier.data %>%
+  select(one_of(liwc.int.prop,
+                liwc.main.prop,
+                desc.variables)) %>%
+  mutate_each( funs (./100 * (-log(mean(./ 100)))),
+               -one_of(c('debate','speaker'))) %>%
+  setNames(paste0('ent.', names(.)))
+
+# rename the description variables
+reduced.data = plyr::rename(reduced.data, 
+                            c("ent.debate" = "debate",
+                              "ent.speaker" = "speaker"))
+
+# merge with existing dataset
+reduced.data = join(classifier.data,reduced.data,
+                    by=c("debate","speaker"))
+
+# gather the new names of all entropy-transformed terms
+liwc.prop.ent = reduced.data %>%
+  select(starts_with('ent')) %>%
+  names(.)
+
+```
+
+***
+
+## Perform SVD
+
+Next, we preform SVD over the entropy-transformed datasets for all main and interaction terms (`liwc.prop.ent`).
+
+``` {r svd}
+
+res.ent = svd(reduced.data[names(reduced.data) 
+                           %in% liwc.prop.ent])
+
+```
+
+***
+
+## Identifying appropriate model structure
+
+Here we identify the appropriate model structure for the SVM-based explorations of the data by balancing (1) the number of included components with (2) the gains in adjusted *R*-squared by adding those components.  We explore the potential gains made by including the 1st through 50th components when making this decision.
+
+```{r identify-model-structure}
+
+# identify which group of data we're using
+model.data = res.ent
+
+# run models with 1-50 components
+source('./supplementary/dimensionality_cutoff-debate_in_the_wild.R')
+
+# which number of components saw the greatest gain over the previous model?
+cutoff.selection = dim.cutoff.table[dim.cutoff.table$adj.r.gain ==
+                                      max(dim.cutoff.table$adj.r.gain),]
+chosen.cutoff = cutoff.selection$factor
+print(chosen.cutoff)
+
+```
+
+```{r plot-dim-reduction-choices, eval=TRUE, echo=FALSE}
+
+# select the point representing our chosen number of components
+cutoff.selection = dim.cutoff.table[dim.cutoff.table$adj.r.gain ==
+                                      max(dim.cutoff.table$adj.r.gain),]
+
+# plot the adjusted R-squared GAINS across all model sizes
+model.adj.r.gains = qplot(y = dim.cutoff.table$adj.r.gain, 
+                          x = dim.cutoff.table$factor,
+                          geom = "line") +
+  labs(title="Gain in adjusted R-squared") +
+  xlab(" ") + ylab("Gain over previous") +
+  geom_point(data=cutoff.selection, aes(x = factor,y = adj.r.gain),
+             color = 'red', size = 2)
+
+# plot the adjusted R-squared across all model sizes
+model.adj.r.squared = qplot(y = dim.cutoff.table$adj.r.squared, 
+                            x = dim.cutoff.table$factor,
+                            geom = "line") +
+  labs(title="Adjusted R-squared") +
+  xlab("Total number of factors") + ylab("Adjusted R-squared") +
+  geom_point(data=cutoff.selection, aes(x = factor,y = adj.r.squared),
+             color = 'red', size = 2)
+
+```
+
+```{r plot-all-dim-info, fig.cap="Gain in adjusted R-squared for each added component (top) and actual adjusted R-squared for each model (bottom). These were created by progressively calculating the adjusted R-squared for linear models predicting outcome (`deltaV`) with increasing numbers of components (i.e., `deltaV ~ c1`, `deltaV ~ c1 + c2`, ... `deltaV ~ c1 + c2 + ... + c50`).",fig.width=3, fig.height=4, fig.align='center', eval = TRUE, echo = FALSE}
+
+# arrange the two plots
+grid.arrange(
+  top=textGrob("Model Performance\nwith Added Components", gp=gpar(fontsize=14)),
+  model.adj.r.gains,
+  model.adj.r.squared,
+  ncol = 1
+)
+
+# save plot to file
+ggsave('comparing-model-performance.png',
+       units = "in", width = 4, height = 5,
+       grid.arrange(
+         top=textGrob("Model Performance with Added Components",
+                      gp=gpar(fontsize=14)),
+         model.adj.r.gains,
+         model.adj.r.squared,
+         ncol = 1
+       ))
+
+```
+
+***
+
+## Predicting outcome with reduced-dimensionality LIWC data
+
+Thanks to the previous section, we have now chosen to create a model predicting change in vote (`deltaV`) with the first 13 components of our reduced-dimensionality LIWC data. This section runs that model.
+
+```{r lm-with-reduced-dimensionality-LIWC-data, warnings= FALSE, error = FALSE}
+
+# what components significantly predict deltaV?
+deltaV.ent.lm.contin = lm(reduced.data$deltaV ~ res.ent$u[,1] +
+                            res.ent$u[,2] +
+                            res.ent$u[,3] +
+                            res.ent$u[,4] +
+                            res.ent$u[,5] +
+                            res.ent$u[,6] +
+                            res.ent$u[,7] +
+                            res.ent$u[,8] +
+                            res.ent$u[,9] +
+                            res.ent$u[,10] +
+                            res.ent$u[,11] +
+                            res.ent$u[,12] +
+                            res.ent$u[,13]
+)
+
+# let's check out the results
+pander_lm(deltaV.ent.lm.contin,stats.caption = TRUE)
+
+```
+
+***
+
+### Significant effects
+
+Components 6, 8, and 13 all reached statistical significance in this model (*p* <= .05). The following sub-sections outline what each component captures.
+
+Further interpretations of model results are explored in the "Discussion" section.
+
+```{r significant-effects-list}
+
+significant.effects(deltaV.ent.lm.contin)
+
+```
+
+***
+#### Component 6
+
+Taken together, Component 6 appears to capture discussions about **relations**, including about time, people, and locations.
+
+```{r sig-component-6}
+
+# what are the highest 5 factors in component 6?
+c6.high.factors = component.factors(reduced.data, res.ent,
+                                    liwc.prop.ent, 6, "top")
+pander(c6.high.factors)
+
+# what are the lowest 5 factors in component 6?
+c6.low.factors = component.factors(reduced.data, res.ent,
+                                   liwc.prop.ent, 6, "bottom")
+pander(c6.low.factors)
+
+```
+
+```{r plot-interaction-component-6, eval = TRUE, echo = FALSE, warning = FALSE, error = FALSE, }
+
+# create a new data frame to plot
+plot.frame = data.frame((res.ent$u[,6] > mean(res.ent$u[,6])) * 1,
+                        reduced.data$group,
+                        reduced.data$deltaV)
+colnames(plot.frame) = c('component','group','deltaV')
+
+# find standard error
+plot.frame = summarySE(data = plot.frame, 
+                       measurevar="deltaV", 
+                       groupvars=c("component","group"),
+                       na.rm=FALSE, 
+                       conf.interval=.95, 
+                       .drop=TRUE)
+
+# plot the group interaction
+group.comp.6.plot = ggplot(plot.frame, aes(x = factor(component), y = deltaV)) +
+  geom_line(data = plot.frame, aes(group = factor(group),color=factor(group))) + 
+  labs(title="Relations") +
+  scale_x_discrete(name = " ", 
+                   breaks = c(0,1), 
+                   labels = c("Low Use", "High Use")) + 
+  ylab("∆V") + ylim(c(-10,10)) +
+  theme(legend.position="none") +
+  scale_color_manual(name="Group",
+                     values = c('red3','green4'),
+                     breaks=c(1,2),
+                     labels=c("Against","For")) +
+  geom_errorbar(aes(ymin = deltaV - se, 
+                    ymax = deltaV + se,
+                    color = factor(group)), 
+                width=.1)
+
+```
+
+***
+
+#### Component 8
+
+Component 8 might be labeled as **health**.
+
+```{r sig-component-8}
+
+# what are the highest 5 factors in component 8?
+c8.high.factors = component.factors(reduced.data, res.ent,
+                                    liwc.prop.ent, 8, "top")
+pander(c8.high.factors)
+
+# what are the lowest 5 factors in component 8?
+c8.low.factors = component.factors(reduced.data, res.ent,
+                                   liwc.prop.ent, 8, "bottom")
+pander(c8.low.factors)
+
+```
+
+```{r plot-interaction-component-8, eval = TRUE, echo = FALSE, warning = FALSE, error = FALSE, }
+
+# create a new data frame to plot
+plot.frame = data.frame((res.ent$u[,8] > mean(res.ent$u[,8])) * 1,
+                        reduced.data$group,
+                        reduced.data$deltaV)
+colnames(plot.frame) = c('component','group','deltaV')
+
+# find standard error
+plot.frame = summarySE(data = plot.frame, 
+                       measurevar="deltaV", 
+                       groupvars=c("component","group"),
+                       na.rm=FALSE, 
+                       conf.interval=.95, 
+                       .drop=TRUE)
+
+# plot the group interaction
+group.comp.8.plot = ggplot(plot.frame, 
+                           aes(x = factor(component), y = deltaV)) +
+  geom_line(data = plot.frame, 
+            aes(group = factor(group),color=factor(group))) + 
+  labs(title="Health") +
+  scale_x_discrete(name = " ", 
+                   breaks = c(0,1), 
+                   labels = c("Low Use", "High Use")) + 
+  ylab(" ") + ylim(c(-10,10)) +
+  theme(legend.position="none") +
+  scale_color_manual(name="Group",
+                     values = c('red3','green4'),
+                     breaks=c(1,2),
+                     labels=c("Against","For")) +
+  geom_errorbar(aes(ymin = deltaV - se, 
+                    ymax = deltaV + se,
+                    color = factor(group)), 
+                width=.1)
+
+```
+
+***
+
+#### Component 13
+
+Finally, component 13 could be described as the **social** category.
+
+```{r sig-component-13}
+
+# what are the highest 5 factors in component 13?
+c13.high.factors = component.factors(reduced.data, res.ent, 
+                                     liwc.prop.ent, 13, "top")
+pander(c13.high.factors)
+
+# what are the lowest 5 factors in component 13?
+c13.low.factors = component.factors(reduced.data, res.ent,
+                                    liwc.prop.ent, 13, "bottom")
+pander(c13.low.factors)
+
+```
+
+```{r plot-interaction-component-13, eval = TRUE, echo = FALSE, warning = FALSE, error = FALSE}
+
+# create a new data frame to plot
+plot.frame = data.frame((res.ent$u[,13] > mean(res.ent$u[,13])) * 1,
+                        reduced.data$group,
+                        reduced.data$deltaV)
+colnames(plot.frame) = c('component','group','deltaV')
+
+# find standard error
+plot.frame = summarySE(data = plot.frame, 
+                       measurevar="deltaV", 
+                       groupvars=c("component","group"),
+                       na.rm=FALSE, 
+                       conf.interval=.95, 
+                       .drop=TRUE)
+
+# plot the group interaction
+group.comp.13.plot = ggplot(plot.frame, aes(x = factor(component), 
+                                            y = deltaV)) +
+  geom_line(data = plot.frame, aes(group = factor(group),
+                                   color = factor(group))) +
+  labs(title = "Social") +
+  scale_x_discrete(name = " ", 
+                   breaks = c(0,1), 
+                   labels = c("Low Use", "High Use")) + 
+  ylab(" ") + ylim(c(-10,10)) +
+  theme(legend.position = "none") +
+  scale_color_manual(name="Group",
+                     values = c('red3','green4'),
+                     breaks=c(1,2),
+                     labels=c("Against","For")) +
+  geom_errorbar(aes(ymin = deltaV - se, 
+                    ymax = deltaV + se,
+                    color = factor(group)), 
+                width=.1)
+
+```
+
+***
+
+### Trends toward significance
+
+Our model shows that two components -- components 3 and 5 -- shows a trend toward significance (.05 < *p* <= .10).
+
+Further interpretations of model results are explored in the "Discussion" section.
+
+```{r trending-effects-list}
+
+trending.effects(deltaV.ent.lm.contin)
+
+```
+
+***
+
+#### Component 3
+
+Component 3 could be described as an **assent** category. The top components are main and interaction terms for the *assent* LIWC category (e.g., "yes") and the *Dic* LIWC category (i.e., whether the words in the turn are included in any of LIWC's categories).
+
+```{r trend-component-3}
+
+# what are the highest 5 factors in component 3?
+c3.high.factors = component.factors(reduced.data,res.ent,
+                                    liwc.prop.ent, 3, "top")
+pander(c3.high.factors)
+
+# what are the lowest 5 factors in component 3?
+c3.low.factors = component.factors(reduced.data, res.ent,
+                                   liwc.prop.ent, 3, "bottom")
+pander(c3.low.factors)
+
+```
+
+```{r plot-interaction-component-3, eval = TRUE, echo = FALSE}
+
+# create a new data frame to plot
+plot.frame = data.frame((res.ent$u[,3] > mean(res.ent$u[,3])) * 1,
+                        reduced.data$group,
+                        reduced.data$deltaV)
+colnames(plot.frame) = c('component','group','deltaV')
+
+# find standard error
+plot.frame = summarySE(data = plot.frame, 
+                       measurevar="deltaV", 
+                       groupvars=c("component","group"),
+                       na.rm=FALSE, 
+                       conf.interval=.95, 
+                       .drop=TRUE)
+
+# plot the group interaction
+group.comp.3.plot = ggplot(plot.frame, 
+                           aes(x = factor(component), 
+                               y = deltaV)) +
+  geom_line(data = plot.frame, 
+            aes(group = factor(group), color=factor(group))) + 
+  labs(title = "Assent", y = "∆V") +
+  scale_x_discrete(name = " ", 
+                   breaks = c(0,1), 
+                   labels = c("Low Use", "High Use")) + 
+  ylim(c(-50,50)) +
+  theme(legend.position = "none") +
+  scale_color_manual(name="Group",
+                     values = c('red3','green4'),
+                     breaks=c(1,2),
+                     labels=c("Against","For")) +
+  geom_errorbar(aes(ymin = deltaV - se, 
+                    ymax = deltaV + se,
+                    color = factor(group)), 
+                width=.1)
+
+```
+
+***
+
+#### Component 5
+
+Component 5 could be described as the **emotion** category.
+
+```{r trend-component-5}
+
+# what are the highest 5 factors in component 5?
+c5.high.factors = component.factors(reduced.data,res.ent,
+                                    liwc.prop.ent, 5, "top")
+pander(c5.high.factors)
+
+# what are the lowest 5 factors in component 5?
+c5.low.factors = component.factors(reduced.data, res.ent,
+                                   liwc.prop.ent, 5, "bottom")
+pander(c5.low.factors)
+
+```
+
+```{r plot-interaction-component-5, eval = TRUE, echo = FALSE}
+
+# create a new data frame to plot
+plot.frame = data.frame((res.ent$u[,5] > mean(res.ent$u[,5])) * 1,
+                        reduced.data$group,
+                        reduced.data$deltaV)
+colnames(plot.frame) = c('component','group','deltaV')
+
+# find standard error
+plot.frame = summarySE(data = plot.frame, 
+                       measurevar="deltaV", 
+                       groupvars=c("component","group"),
+                       na.rm=FALSE, 
+                       conf.interval=.95, 
+                       .drop=TRUE)
+
+# plot the group interaction
+group.comp.5.plot = ggplot(plot.frame, 
+                           aes(x = factor(component), 
+                               y = deltaV)) +
+  geom_line(data = plot.frame, 
+            aes(group = factor(group), color=factor(group))) + 
+  labs(title = "Emotion") +
+  scale_x_discrete(name = " ", 
+                   breaks = c(0,1), 
+                   labels = c("Low Use", "High Use")) + 
+  ylab(" ") + ylim(c(-50,50)) +
+  theme(legend.position = "none") +
+  scale_color_manual(name="Group",
+                     values = c('red3','green4'),
+                     breaks=c(1,2),
+                     labels=c("Against","For")) +
+  geom_errorbar(aes(ymin = deltaV - se, 
+                    ymax = deltaV + se,
+                    color = factor(group)), 
+                width=.1)
+
+```
+
+***
+
+# Discussion
+
+These analyses explored how language use can affect opinion change in a real-world dataset with an objective outcome measure. While our more targeted analyses of a few language categories found no statistically significant effects on outcome, we did find several effects when leveraging the power of the larger-scale dataset.
+
+When using the entire dataset -- including main terms of group and all LIWC variables, along with all group-by-LIWC interaction terms -- we found that an SVM regression was able to reliably predict debate outcomes (adjusted *R*-squared = .13). Next, we used a reduced-dimensionality dataset to identify which factors most contributed to winning outcomes.
+
+The reduction of dimensions (using entropy transformations and singular value decomponsition) allowed us to explore how individual effects work together in concert. This prespective could capture the ways in which a constellation of individual effects -- which we were unable to capture in our predictions using single main and interaction terms -- might form larger-scale language dynamics that influence debate outcomes.
+
+Below, we discuss each of the significant (**relations**, **health**, and **social**) and trending (**assent** and **emotion**) components in more detail.
+
+***
+
+## Summarizing the significant effects
+
+Interestingly, although numerous group-by-LIWC interaction effects are included in each of the significant components, we find no significant interactions when we consider each component as a whole (**relations**, left; **health**, center; **social**, right).
+
+For each of these components, we see a relatively uniform effect on outcome (`deltaV`), despite visual trends towards differences by group membership. For the relations component, we see a negative connection between increased use and "for" group gains (relative to "against" group gains). The health and social components demonstrate the opposite: Increased uses of these components is associated with greater "for" group gains.
+
+It is important here to again note that these results are derived from nearly 70 debates with a range of topics. The centrality of these components to daily life -- relations, health, and social -- likely make them applicable to a range of arguments on both sides of any given debate.
+
+```{r plot-all-significant, fig.cap="Interactions for all significant components by group membership (green = 'for', red = 'against'). For ease of plotting, the scores for each component are split along the mean. ",fig.width=6, fig.height=3, fig.align='center', eval = TRUE, echo = FALSE}
+
+# create a master legend
+master.legend = gtable_filter(ggplot_gtable(
+  ggplot_build(group.comp.6.plot + theme(legend.position="bottom"))), 
+  "guide-box")
+
+# arrange the plots
+grid.arrange(
+  top=textGrob("Success by group membership\nand use of significant components\n",
+               gp=gpar(fontsize=14)),
+  group.comp.6.plot,
+  group.comp.8.plot,
+  group.comp.13.plot,
+  bottom = textGrob('Use of words in component',
+                    gp=gpar(fontsize=14)),
+  ncol = 3
+)
+
+# save to file
+ggsave('significant-factors-interactions.png',
+       units = "in", width = 6, height = 3,
+       grid.arrange(top=textGrob("Success by group membership\nand use of significant components",
+                                 gp=gpar(fontsize=14)),
+                    group.comp.6.plot,
+                    group.comp.8.plot,
+                    group.comp.13.plot,
+                    bottom = textGrob('Use of words in component',
+                                      gp=gpar(fontsize=12)),
+                    ncol = 3
+       ))
+
+```
+
+***
+
+## Summarizing the trending effects
+
+Increased use of the **emotion** component tends to be associated with a decrease in pre- to post-debate votes for the"for" group relative to the "against" group, with no differences by group membership. The **assent** component, by contrast, shows a trend toward the opposite.
+
+```{r plot-all-trending, fig.cap="Interactions for all trending components by group membership (green = 'for', red = 'against'). For ease of plotting, the scores for each component are split along the mean. ",fig.width=4, fig.height=3, fig.align='center', eval = TRUE, echo = FALSE}
+
+# create a master legend
+master.legend = gtable_filter(ggplot_gtable(
+  ggplot_build(group.comp.3.plot + theme(legend.position="bottom"))), 
+  "guide-box")
+
+# arrange the plots
+grid.arrange(
+  top=textGrob("Success by group membership\nand use of trending components\n",
+               gp=gpar(fontsize=14)),
+  group.comp.3.plot,
+  group.comp.5.plot,
+  bottom = textGrob('Use of words in component',
+                    gp=gpar(fontsize=14)),
+  ncol = 2
+)
+
+# save to file
+ggsave('trending-components-interactions.png',
+       units = "in", width = 4, height = 3,
+       grid.arrange(
+         top=textGrob("Success by group membership\nand use of trending components",
+                      gp=gpar(fontsize=14)),
+         group.comp.3.plot,
+         group.comp.5.plot,
+         bottom = textGrob('Use of words in component',
+                           gp=gpar(fontsize=12)),
+         ncol = 2
+       ))
+
+```
+
