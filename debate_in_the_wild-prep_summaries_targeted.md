@@ -1,11 +1,4 @@
----
-title: "Debate in the Wild: Data Preparation, Data Summaries, and Targeted Model"
-output: html_document
-  # html_document:
-  #   fig_caption: yes
-  #   number_sections: yes
-  #   toc: yes
----
+# Debate in the Wild: Data Preparation, Data Summaries, and Targeted Model
 
 This R markdown provides the basis for our manuscript exploring the effects of linguistic behaviors and personal traits on persuasiveness using <a href = "http://www.iq2us.org" target="_blank">the Intelligence Squared U.S.</a> corpus, first introduced by Paxton and Dale (2014, *Proceedings of the Cognitive Science Society*). This is the first of two R markdowns that accompanies this manuscript.
 
