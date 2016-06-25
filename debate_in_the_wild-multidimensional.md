@@ -245,13 +245,11 @@ pander_lm(contin.model.fit,stats.caption = TRUE)
 ```
 
 
------------------------------------------------------------------------------
-      &nbsp;        Estimate   Std..Error   t.value   Pr...t..     p     sig 
------------------- ---------- ------------ --------- ---------- ------- -----
- **(Intercept)**     1.533       0.5959      2.573    0.01143   0.01008   *  
 
- **actual.value**   0.05251     0.02756      1.905    0.05938   0.05672   .  
------------------------------------------------------------------------------
+|       &nbsp;       |  Estimate  |  Std..Error  |  t.value  |  Pr...t..  |    p    |  sig  |
+|:------------------:|:----------:|:------------:|:---------:|:----------:|:-------:|:-----:|
+|  **(Intercept)**   |   1.533    |    0.5959    |   2.573   |  0.01143   | 0.01008 |   *   |
+|  **actual.value**  |  0.05251   |   0.02756    |   1.905   |  0.05938   | 0.05672 |   .   |
 
 Table: **Adjusted *R*-squared: 0.02; *F*(1,108) = 3.63**
 
@@ -365,37 +363,23 @@ pander_lm(deltaV.ent.lm.contin,stats.caption = TRUE)
 ```
 
 
-----------------------------------------------------------------------------------
-       &nbsp;          Estimate   Std..Error   t.value   Pr...t..      p      sig 
---------------------- ---------- ------------ --------- ---------- --------- -----
-   **(Intercept)**      -103.9      68.66      -1.514     0.1311    0.1301        
 
- **res.ent$u[, 1]**     -1866        1208      -1.544     0.1235    0.1225        
-
- **res.ent$u[, 2]**     -469.9      304.4      -1.544     0.1237    0.1227        
-
- **res.ent$u[, 3]**     95.09       53.94       1.763    0.07888    0.07791    .  
-
- **res.ent$u[, 4]**    0.05592       38.6     0.001449    0.9988    0.9988        
-
- **res.ent$u[, 5]**     -36.38       20.5      -1.775     0.0769    0.07594    .  
-
- **res.ent$u[, 6]**     -51.89      19.79      -2.622    0.009172  0.008749   **  
-
- **res.ent$u[, 7]**     2.939       20.01      0.1469     0.8833    0.8832        
-
- **res.ent$u[, 8]**     83.33       20.07       4.153   4.225e-05  3.28e-05   *** 
-
- **res.ent$u[, 9]**     4.864        19.8      0.2457     0.8061    0.8059        
-
- **res.ent$u[, 10]**    8.327       20.65      0.4033     0.687     0.6867        
-
- **res.ent$u[, 11]**    -26.23      19.79      -1.325     0.1861    0.1851        
-
- **res.ent$u[, 12]**      24        20.13       1.192     0.2342    0.2333        
-
- **res.ent$u[, 13]**     101        20.53       4.921   1.392e-06  8.632e-07  *** 
-----------------------------------------------------------------------------------
+|        &nbsp;         |  Estimate  |  Std..Error  |  t.value  |  Pr...t..  |     p     |  sig  |
+|:---------------------:|:----------:|:------------:|:---------:|:----------:|:---------:|:-----:|
+|    **(Intercept)**    |   -103.9   |    68.66     |  -1.514   |   0.1311   |  0.1301   |       |
+|  **res.ent$u[, 1]**   |   -1866    |     1208     |  -1.544   |   0.1235   |  0.1225   |       |
+|  **res.ent$u[, 2]**   |   -469.9   |    304.4     |  -1.544   |   0.1237   |  0.1227   |       |
+|  **res.ent$u[, 3]**   |   95.09    |    53.94     |   1.763   |  0.07888   |  0.07791  |   .   |
+|  **res.ent$u[, 4]**   |  0.05592   |     38.6     | 0.001449  |   0.9988   |  0.9988   |       |
+|  **res.ent$u[, 5]**   |   -36.38   |     20.5     |  -1.775   |   0.0769   |  0.07594  |   .   |
+|  **res.ent$u[, 6]**   |   -51.89   |    19.79     |  -2.622   |  0.009172  | 0.008749  |  **   |
+|  **res.ent$u[, 7]**   |   2.939    |    20.01     |  0.1469   |   0.8833   |  0.8832   |       |
+|  **res.ent$u[, 8]**   |   83.33    |    20.07     |   4.153   | 4.225e-05  | 3.28e-05  |  ***  |
+|  **res.ent$u[, 9]**   |   4.864    |     19.8     |  0.2457   |   0.8061   |  0.8059   |       |
+|  **res.ent$u[, 10]**  |   8.327    |    20.65     |  0.4033   |   0.687    |  0.6867   |       |
+|  **res.ent$u[, 11]**  |   -26.23   |    19.79     |  -1.325   |   0.1861   |  0.1851   |       |
+|  **res.ent$u[, 12]**  |     24     |    20.13     |   1.192   |   0.2342   |  0.2333   |       |
+|  **res.ent$u[, 13]**  |    101     |    20.53     |   4.921   | 1.392e-06  | 8.632e-07 |  ***  |
 
 Table: **Adjusted *R*-squared: 0.13; *F*(13,316) = 4.86**
 
@@ -413,15 +397,12 @@ significant.effects(deltaV.ent.lm.contin)
 ```
 
 
--------------------------
-   component        p    
---------------- ---------
-res.ent$u[, 6]  0.008749 
 
-res.ent$u[, 8]  3.28e-05 
-
-res.ent$u[, 13] 8.632e-07
--------------------------
+|    component    |     p     |
+|:---------------:|:---------:|
+| res.ent$u[, 6]  | 0.008749  |
+| res.ent$u[, 8]  | 3.28e-05  |
+| res.ent$u[, 13] | 8.632e-07 |
 
 ***
 #### Component 6
@@ -433,45 +414,35 @@ Taken together, Component 6 appears to capture discussions about **relations**, 
 # what are the highest 5 factors in component 6?
 c6.high.factors = component.factors(reduced.data, res.ent,
                                     liwc.prop.ent, 6, "top")
-pander(c6.high.factors)
+pander(c6.high.factors, style = "rmarkdown")
 ```
 
 
--------------------------------------------
- component           name           weight 
------------ ---------------------- --------
-    c6      ent.group.prop.relativ  0.4148 
 
-    c6         ent.prop.relativ     0.2618 
-
-    c6       ent.group.prop.space   0.2465 
-
-    c6       ent.group.prop.ppron   0.2011 
-
-    c6        ent.group.prop.we     0.1655 
--------------------------------------------
+|  component  |          name          |  weight  |
+|:-----------:|:----------------------:|:--------:|
+|     c6      | ent.group.prop.relativ |  0.4148  |
+|     c6      |    ent.prop.relativ    |  0.2618  |
+|     c6      |  ent.group.prop.space  |  0.2465  |
+|     c6      |  ent.group.prop.ppron  |  0.2011  |
+|     c6      |   ent.group.prop.we    |  0.1655  |
 
 ```r
 # what are the lowest 5 factors in component 6?
 c6.low.factors = component.factors(reduced.data, res.ent,
                                    liwc.prop.ent, 6, "bottom")
-pander(c6.low.factors)
+pander(c6.low.factors, style = "rmarkdown")
 ```
 
 
--------------------------------------------
- component           name           weight 
------------ ---------------------- --------
-    c6      ent.group.prop.Sixltr  -0.2906 
 
-    c6        ent.group.prop.bio    -0.239 
-
-    c6         ent.prop.Sixltr     -0.1833 
-
-    c6      ent.group.prop.health  -0.1712 
-
-    c6      ent.group.prop.cogmech -0.1521 
--------------------------------------------
+|  component  |          name          |  weight  |
+|:-----------:|:----------------------:|:--------:|
+|     c6      | ent.group.prop.Sixltr  | -0.2906  |
+|     c6      |   ent.group.prop.bio   |  -0.239  |
+|     c6      |    ent.prop.Sixltr     | -0.1833  |
+|     c6      | ent.group.prop.health  | -0.1712  |
+|     c6      | ent.group.prop.cogmech | -0.1521  |
 
 
 
@@ -486,45 +457,35 @@ Component 8 might be labeled as **health**.
 # what are the highest 5 factors in component 8?
 c8.high.factors = component.factors(reduced.data, res.ent,
                                     liwc.prop.ent, 8, "top")
-pander(c8.high.factors)
+pander(c8.high.factors, style = "rmarkdown")
 ```
 
 
--------------------------------------------
- component           name           weight 
------------ ---------------------- --------
-    c8        ent.group.prop.bio    0.373  
 
-    c8      ent.group.prop.health    0.25  
-
-    c8           ent.prop.bio       0.2299 
-
-    c8      ent.group.prop.relativ  0.1873 
-
-    c8         ent.prop.health      0.1541 
--------------------------------------------
+|  component  |          name          |  weight  |
+|:-----------:|:----------------------:|:--------:|
+|     c8      |   ent.group.prop.bio   |  0.373   |
+|     c8      | ent.group.prop.health  |   0.25   |
+|     c8      |      ent.prop.bio      |  0.2299  |
+|     c8      | ent.group.prop.relativ |  0.1873  |
+|     c8      |    ent.prop.health     |  0.1541  |
 
 ```r
 # what are the lowest 5 factors in component 8?
 c8.low.factors = component.factors(reduced.data, res.ent,
                                    liwc.prop.ent, 8, "bottom")
-pander(c8.low.factors)
+pander(c8.low.factors, style = "rmarkdown")
 ```
 
 
--------------------------------------------
- component           name           weight 
------------ ---------------------- --------
-    c8       ent.group.prop.work   -0.3526 
 
-    c8      ent.group.prop.cogmech -0.2276 
-
-    c8          ent.prop.work      -0.2145 
-
-    c8       ent.group.prop.money  -0.1894 
-
-    c8      ent.group.prop.affect   -0.175 
--------------------------------------------
+|  component  |          name          |  weight  |
+|:-----------:|:----------------------:|:--------:|
+|     c8      |  ent.group.prop.work   | -0.3526  |
+|     c8      | ent.group.prop.cogmech | -0.2276  |
+|     c8      |     ent.prop.work      | -0.2145  |
+|     c8      |  ent.group.prop.money  | -0.1894  |
+|     c8      | ent.group.prop.affect  |  -0.175  |
 
 
 
@@ -539,45 +500,35 @@ Finally, component 13 could be described as the **social** category.
 # what are the highest 5 factors in component 13?
 c13.high.factors = component.factors(reduced.data, res.ent, 
                                      liwc.prop.ent, 13, "top")
-pander(c13.high.factors)
+pander(c13.high.factors, style = "rmarkdown")
 ```
 
 
--------------------------------------------
- component           name           weight 
------------ ---------------------- --------
-    c13     ent.group.prop.social   0.2207 
 
-    c13       ent.group.prop.you    0.167  
-
-    c13        ent.prop.social      0.1536 
-
-    c13     ent.group.prop.present  0.1445 
-
-    c13      ent.group.prop.time    0.1346 
--------------------------------------------
+|  component  |          name          |  weight  |
+|:-----------:|:----------------------:|:--------:|
+|     c13     | ent.group.prop.social  |  0.2207  |
+|     c13     |   ent.group.prop.you   |  0.167   |
+|     c13     |    ent.prop.social     |  0.1536  |
+|     c13     | ent.group.prop.present |  0.1445  |
+|     c13     |  ent.group.prop.time   |  0.1346  |
 
 ```r
 # what are the lowest 5 factors in component 13?
 c13.low.factors = component.factors(reduced.data, res.ent,
                                     liwc.prop.ent, 13, "bottom")
-pander(c13.low.factors)
+pander(c13.low.factors, style = "rmarkdown")
 ```
 
 
--------------------------------------------
- component           name           weight 
------------ ---------------------- --------
-    c13      ent.group.prop.past   -0.3019 
 
-    c13      ent.group.prop.ipron   -0.241 
-
-    c13      ent.group.prop.work   -0.2346 
-
-    c13     ent.group.prop.pronoun -0.2324 
-
-    c13       ent.group.prop.bio   -0.2177 
--------------------------------------------
+|  component  |          name          |  weight  |
+|:-----------:|:----------------------:|:--------:|
+|     c13     |  ent.group.prop.past   | -0.3019  |
+|     c13     |  ent.group.prop.ipron  |  -0.241  |
+|     c13     |  ent.group.prop.work   | -0.2346  |
+|     c13     | ent.group.prop.pronoun | -0.2324  |
+|     c13     |   ent.group.prop.bio   | -0.2177  |
 
 
 
@@ -595,13 +546,11 @@ trending.effects(deltaV.ent.lm.contin)
 ```
 
 
-----------------------
-  component       p   
--------------- -------
-res.ent$u[, 3] 0.07791
 
-res.ent$u[, 5] 0.07594
-----------------------
+|   component    |    p    |
+|:--------------:|:-------:|
+| res.ent$u[, 3] | 0.07791 |
+| res.ent$u[, 5] | 0.07594 |
 
 ***
 
@@ -614,45 +563,35 @@ Component 3 could be described as an **assent** category. The top components are
 # what are the highest 5 factors in component 3?
 c3.high.factors = component.factors(reduced.data,res.ent,
                                     liwc.prop.ent, 3, "top")
-pander(c3.high.factors)
+pander(c3.high.factors, style = "rmarkdown")
 ```
 
 
-------------------------------------------
- component          name           weight 
------------ --------------------- --------
-    c3      ent.group.prop.assent  0.819  
 
-    c3         ent.prop.assent     0.4354 
-
-    c3          ent.prop.Dic       0.1639 
-
-    c3       ent.group.prop.Dic    0.1321 
-
-    c3            ent.group       0.08941 
-------------------------------------------
+|  component  |         name          |  weight  |
+|:-----------:|:---------------------:|:--------:|
+|     c3      | ent.group.prop.assent |  0.819   |
+|     c3      |    ent.prop.assent    |  0.4354  |
+|     c3      |     ent.prop.Dic      |  0.1639  |
+|     c3      |  ent.group.prop.Dic   |  0.1321  |
+|     c3      |       ent.group       | 0.08941  |
 
 ```r
 # what are the lowest 5 factors in component 3?
 c3.low.factors = component.factors(reduced.data, res.ent,
                                    liwc.prop.ent, 3, "bottom")
-pander(c3.low.factors)
+pander(c3.low.factors, style = "rmarkdown")
 ```
 
 
--------------------------------------------
- component           name           weight 
------------ ---------------------- --------
-    c3       ent.group.prop.funct  -0.1971 
 
-    c3      ent.group.prop.cogmech -0.07615
-
-    c3      ent.group.prop.Sixltr  -0.07477
-
-    c3      ent.group.prop.pronoun  -0.069 
-
-    c3       ent.group.prop.verb   -0.06882
--------------------------------------------
+|  component  |          name          |  weight  |
+|:-----------:|:----------------------:|:--------:|
+|     c3      |  ent.group.prop.funct  | -0.1971  |
+|     c3      | ent.group.prop.cogmech | -0.07615 |
+|     c3      | ent.group.prop.Sixltr  | -0.07477 |
+|     c3      | ent.group.prop.pronoun |  -0.069  |
+|     c3      |  ent.group.prop.verb   | -0.06882 |
 
 
 
@@ -667,45 +606,35 @@ Component 5 could be described as the **emotion** category.
 # what are the highest 5 factors in component 5?
 c5.high.factors = component.factors(reduced.data,res.ent,
                                     liwc.prop.ent, 5, "top")
-pander(c5.high.factors)
+pander(c5.high.factors, style = "rmarkdown")
 ```
 
 
--------------------------------------------
- component           name           weight 
------------ ---------------------- --------
-    c5      ent.group.prop.negemo   0.2065 
 
-    c5      ent.group.prop.cogmech  0.2012 
-
-    c5       ent.group.prop.anger   0.1993 
-
-    c5      ent.group.prop.Sixltr   0.1705 
-
-    c5      ent.group.prop.affect   0.1513 
--------------------------------------------
+|  component  |          name          |  weight  |
+|:-----------:|:----------------------:|:--------:|
+|     c5      | ent.group.prop.negemo  |  0.2065  |
+|     c5      | ent.group.prop.cogmech |  0.2012  |
+|     c5      |  ent.group.prop.anger  |  0.1993  |
+|     c5      | ent.group.prop.Sixltr  |  0.1705  |
+|     c5      | ent.group.prop.affect  |  0.1513  |
 
 ```r
 # what are the lowest 5 factors in component 5?
 c5.low.factors = component.factors(reduced.data, res.ent,
                                    liwc.prop.ent, 5, "bottom")
-pander(c5.low.factors)
+pander(c5.low.factors, style = "rmarkdown")
 ```
 
 
------------------------------------------
- component          name          weight 
------------ -------------------- --------
-    c5      ent.group.prop.work  -0.4508 
 
-    c5      ent.group.prop.money -0.4191 
-
-    c5         ent.prop.work     -0.2851 
-
-    c5         ent.prop.money    -0.2732 
-
-    c5       ent.group.prop.Dic  -0.1704 
------------------------------------------
+|  component  |         name         |  weight  |
+|:-----------:|:--------------------:|:--------:|
+|     c5      | ent.group.prop.work  | -0.4508  |
+|     c5      | ent.group.prop.money | -0.4191  |
+|     c5      |    ent.prop.work     | -0.2851  |
+|     c5      |    ent.prop.money    | -0.2732  |
+|     c5      |  ent.group.prop.Dic  | -0.1704  |
 
 
 
