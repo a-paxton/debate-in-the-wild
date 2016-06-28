@@ -247,6 +247,7 @@ pander_lm(contin.model.fit,stats.caption = TRUE)
 Table: **Adjusted *R*-squared: 0.02; *F*(1,108) = 3.63**
 
 <img src="figure/plot-contin-svm-results-1.png" title="The relation between the SVM's predicted debate outcomes and the actual debate outcomes." alt="The relation between the SVM's predicted debate outcomes and the actual debate outcomes." style="display: block; margin: auto;" />
+
 **Figure**: The relation between the SVM's predicted debate outcomes and the actual debate outcomes.
 
 ***
